@@ -15,11 +15,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.manju23reddy.acronymsmeaning.R
 import com.manju23reddy.acronymsmeaning.model.REQParamsType
 import com.manju23reddy.acronymsmeaning.ui.theme.AcronymsMeaningTheme
@@ -41,12 +40,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {(
+
                         Column(modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()) {
-                            SearchBoxUI()
+                            SearchBoxUI(mainActivityViewModel)
                             Spacer(modifier = Modifier.height(5.dp))
-                            DataResults()
+                            DataResults(mainActivityViewModel)
                         }
 
                  )
@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
     }
     
     @Composable
-    fun ReqTypeBox(modifier: Modifier = Modifier){
+    fun ReqTypeBox(modifier: Modifier = Modifier, state : MainActivityViewModel){
         var curSelection : String by remember {
             mutableStateOf(reqType[0])
         }
@@ -97,7 +97,9 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun SearchBoxUI(){
+    fun SearchBoxUI(mainActivityViewModel: MainActivityViewModel) {
+
+
         ConstraintLayout(modifier = Modifier
             .fillMaxWidth(1f)
             .height(60.dp)) {
@@ -108,7 +110,7 @@ class MainActivity : ComponentActivity() {
                 start.linkTo(parent.start)
                 top.linkTo(parent.top)
                 bottom.linkTo(parent.bottom)
-            })
+            }, mainActivityViewModel)
 
 
             var textVal by remember {
@@ -144,8 +146,26 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun DataResults(){
+    fun DataResults(mainActivityViewModel: MainActivityViewModel) {
+        val state by mainActivityViewModel.uiState.collectAsState()
+        Column(modifier = Modifier
+            .wrapContentSize()
+            .padding(5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            when(state){
+                is MainActivityUiState.NoResult -> {
+                    Text(text = "No Result",
+                        modifier = Modifier.padding(20.dp).fillMaxWidth(1f),
+                        textAlign = TextAlign.Center)
+                }
+                is MainActivityUiState.HasResult -> {
 
+                }
+                is MainActivityUiState.isLoading -> {
+                    CircularProgressIndicator(progress = 0.70f)
+                }
+            }
+
+        }
     }
 }
 

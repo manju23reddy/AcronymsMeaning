@@ -14,14 +14,13 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 @Singleton
-class AcronymRepo @Inject constructor(val netHelper: AcronymServiceImpl,
-                                      val scope : CoroutineDispatcher = Dispatchers.IO ){
+class AcronymRepo @Inject constructor(val netHelper: AcronymServiceImpl){
 
     private val result = MutableSharedFlow<Result<List<AcronymResult>>>()
 
     suspend fun getSearchResultFor(type : REQParamsType, query : String) :
             MutableSharedFlow<Result<List<AcronymResult>>> {
-        withContext(scope){
+        withContext(Dispatchers.IO){
             netHelper.getAcronymResult(type, query).collect{res ->
                 result.emit(res)
             }
