@@ -6,6 +6,7 @@ import com.manju23reddy.acronymsmeaning.util.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,8 +44,12 @@ class AcronymServiceImpl @Inject constructor()  {
 
     }
 
-    fun getAcronymResult(type : REQParamsType, query : String) = flow<com.manju23reddy.acronymsmeaning.util.Result<List<AcronymResult>>>{
-        emit(Result.Loading)
+    private val result = MutableSharedFlow<Result<List<AcronymResult>>>()
+
+    suspend fun getAcronymResult(type : REQParamsType, query : String):
+            MutableSharedFlow<Result<List<AcronymResult>>> = withContext(Dispatchers.IO){
+
+        result.emit(Result.Loading)
 
         val callType = when(type){
             REQParamsType.SF -> {
@@ -63,21 +68,23 @@ class AcronymServiceImpl @Inject constructor()  {
                 response?.let {
                     it.body()?.let {
                         CoroutineScope(Dispatchers.IO).launch {
-                            emit(Result.Success(it))
+                            result.emit(Result.Success(it))
                         }
                     }
                 } ?: CoroutineScope(Dispatchers.IO).launch {
-                    emit(Result.Error(Error("NO Response")))
+                    result.emit(Result.Error(Error("NO Response")))
                 }
             }
 
             override fun onFailure(call: Call<List<AcronymResult>>, t: Throwable) {
                 CoroutineScope(Dispatchers.IO).launch {
-                    emit(Result.Error(Error("NO Response")))
+                    result.emit(Result.Error(Error("NO Response")))
                 }
             }
 
         })
+
+        result
     }
 
 

@@ -85,6 +85,7 @@ class MainActivity : ComponentActivity() {
                     reqType.forEach { type->
                         DropdownMenuItem(onClick = {
                             curSelection = type
+                            state.setReqType(REQParamsType.valueOf(type))
                             expanded = false
                         }) {
                             Text(text = type)
@@ -118,6 +119,7 @@ class MainActivity : ComponentActivity() {
             }
             TextField(value = textVal, onValueChange = {
                 textVal = it
+                mainActivityViewModel.setQeryString(textVal)
             }, modifier = Modifier
                 .fillMaxWidth(0.65f)
                 .height(60.dp)
@@ -130,7 +132,9 @@ class MainActivity : ComponentActivity() {
                     top.linkTo(parent.top, margin = 5.dp)
                 }, placeholder = { Text(text = "Search Acromine")})
 
-            IconButton(onClick = { }, modifier = Modifier
+            IconButton(onClick = {
+              mainActivityViewModel.getResultForSearch()
+            }, modifier = Modifier
                 .height(60.dp)
                 .fillMaxWidth(0.15f)
                 .constrainAs(searchBtn) {

@@ -70,10 +70,11 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun getResultForSearch(type : REQParamsType, query : String){
+    fun getResultForSearch(){
         viewModelScope.launch {
 
-            repo.getSearchResultFor(type, query).collect{result ->
+            repo.getSearchResultFor(searchResult.value.searchType, searchResult.value.queryString)
+                .collect{result ->
                 when(result){
                     is Result.Success -> {
                         searchResult.update {
@@ -93,6 +94,26 @@ class MainActivityViewModel @Inject constructor(
                 }
             }
 
+        }
+    }
+
+    fun setReqType(type: REQParamsType){
+        _update(type, searchResult.value.queryString)
+    }
+
+    fun setQeryString(query : String){
+        _update(searchResult.value.searchType, query)
+    }
+
+    private fun _update(type: REQParamsType, query: String){
+        searchResult.update {
+            it.copy(
+                searchType = type,
+                queryString = it.queryString,
+                result = it.result,
+                isLoading = it.isLoading,
+                error = it.error
+            )
         }
     }
 
