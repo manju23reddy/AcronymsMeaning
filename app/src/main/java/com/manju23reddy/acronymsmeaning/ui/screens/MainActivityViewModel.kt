@@ -7,8 +7,10 @@ import com.manju23reddy.acronymsmeaning.model.REQParamsType
 import com.manju23reddy.acronymsmeaning.repo.AcronymRepo
 import com.manju23reddy.acronymsmeaning.util.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
@@ -25,12 +27,11 @@ sealed interface MainActivityUiState{
 
     data class isLoading(val value : Boolean? = null):MainActivityUiState
 }
-
-private data class ViewModelState(
+ data class ViewModelState(
     var result: List<AcronymResult>? = null,
     var isLoading: Boolean = false,
     var searchType: REQParamsType = REQParamsType.SF,
-    var queryString: String = "",
+    var queryString: String = "hmm",
     var error: String? = null
 ){
     fun toMainActivityUIState() : MainActivityUiState =
@@ -51,7 +52,7 @@ class MainActivityViewModel @Inject constructor(
     private val repo: AcronymRepo
 ) : ViewModel() {
 
-    private val searchResult = MutableStateFlow(ViewModelState())
+    val searchResult = MutableStateFlow(ViewModelState())
 
     val uiState = searchResult.map {
         it.toMainActivityUIState()
@@ -61,6 +62,7 @@ class MainActivityViewModel @Inject constructor(
         searchResult.value.toMainActivityUIState()
     )
     init {
+
         searchResult.update {
             it.copy(
                 result = null,
@@ -72,9 +74,13 @@ class MainActivityViewModel @Inject constructor(
 
     fun getResultForSearch(){
         viewModelScope.launch {
+            _getResult()
+        }
+    }
 
-            repo.getSearchResultFor(searchResult.value.searchType, searchResult.value.queryString)
-                .collect{result ->
+    private suspend fun _getResult(){
+        withContext(Dispatchers.IO){
+            repo.getSearchResultFor(searchResult.value.searchType, searchResult.value.queryString).collectLatest { result ->
                 when(result){
                     is Result.Success -> {
                         searchResult.update {
@@ -92,13 +98,20 @@ class MainActivityViewModel @Inject constructor(
                         }
                     }
                 }
+
             }
 
         }
+
+
     }
 
     fun setReqType(type: REQParamsType){
         _update(type, searchResult.value.queryString)
+    }
+
+    fun getQueryString() : String{
+        return searchResult.value.queryString
     }
 
     fun setQeryString(query : String){

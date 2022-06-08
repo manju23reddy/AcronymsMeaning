@@ -100,6 +100,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun SearchBoxUI(mainActivityViewModel: MainActivityViewModel) {
 
+        val uiState by mainActivityViewModel.uiState.collectAsState()
 
         ConstraintLayout(modifier = Modifier
             .fillMaxWidth(1f)
@@ -115,7 +116,7 @@ class MainActivity : ComponentActivity() {
 
 
             var textVal by remember {
-                mutableStateOf("")
+                mutableStateOf(mainActivityViewModel.searchResult.value.queryString)
             }
             TextField(value = textVal, onValueChange = {
                 textVal = it
@@ -158,7 +159,9 @@ class MainActivity : ComponentActivity() {
             when(state){
                 is MainActivityUiState.NoResult -> {
                     Text(text = "No Result",
-                        modifier = Modifier.padding(20.dp).fillMaxWidth(1f),
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .fillMaxWidth(1f),
                         textAlign = TextAlign.Center)
                 }
                 is MainActivityUiState.HasResult -> {

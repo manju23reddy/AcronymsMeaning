@@ -1,5 +1,6 @@
 package com.manju23reddy.acronymsmeaning.net
 
+import android.util.Log
 import com.manju23reddy.acronymsmeaning.model.AcronymResult
 import com.manju23reddy.acronymsmeaning.model.REQParamsType
 import com.manju23reddy.acronymsmeaning.util.Result
@@ -44,47 +45,51 @@ class AcronymServiceImpl @Inject constructor()  {
 
     }
 
-    private val result = MutableSharedFlow<Result<List<AcronymResult>>>()
+    public val result = MutableSharedFlow<Result<List<AcronymResult>>>()
 
     suspend fun getAcronymResult(type : REQParamsType, query : String):
-            MutableSharedFlow<Result<List<AcronymResult>>> = withContext(Dispatchers.IO){
+            MutableSharedFlow<Result<List<AcronymResult>>>{
 
-        result.emit(Result.Loading)
+        withContext(Dispatchers.IO){
+            result.emit(Result.Loading)
 
-        val callType = when(type){
-            REQParamsType.SF -> {
-                service?.getAcronymResultSF(query)
+            val callType = when(type){
+                REQParamsType.SF -> {
+                    service?.getAcronymResultSF(query)
+                }
+                REQParamsType.LF -> {
+                    service?.getAcronymResultLS(query)
+                }
             }
-            REQParamsType.LF -> {
-                service?.getAcronymResultLS(query)
-            }
+
+            callType?.enqueue(object : Callback<List<AcronymResult>>{
+                override fun onResponse(
+                    call: Call<List<AcronymResult>>,
+                    response: Response<List<AcronymResult>>
+                ) {
+                    response?.let {
+                        it.body()?.let {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                Log.e("test", it.toString())
+                                result.emit(Result.Success(it))
+                            }
+                        }
+                    } ?: CoroutineScope(Dispatchers.IO).launch {
+                        result.emit(Result.Error(Error("NO Response")))
+                    }
+                }
+
+                override fun onFailure(call: Call<List<AcronymResult>>, t: Throwable) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        result.emit(Result.Error(Error("NO Response")))
+                    }
+                }
+
+            })
         }
 
-        callType?.enqueue(object : Callback<List<AcronymResult>>{
-            override fun onResponse(
-                call: Call<List<AcronymResult>>,
-                response: Response<List<AcronymResult>>
-            ) {
-                response?.let {
-                    it.body()?.let {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            result.emit(Result.Success(it))
-                        }
-                    }
-                } ?: CoroutineScope(Dispatchers.IO).launch {
-                    result.emit(Result.Error(Error("NO Response")))
-                }
-            }
 
-            override fun onFailure(call: Call<List<AcronymResult>>, t: Throwable) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    result.emit(Result.Error(Error("NO Response")))
-                }
-            }
-
-        })
-
-        result
+        return result
     }
 
 

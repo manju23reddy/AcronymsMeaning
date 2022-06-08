@@ -20,12 +20,19 @@ class AcronymRepo @Inject constructor(val netHelper: AcronymServiceImpl){
 
     suspend fun getSearchResultFor(type : REQParamsType, query : String) :
             MutableSharedFlow<Result<List<AcronymResult>>> {
+        _getResultFromDataSource(type, query)
+        return result
+
+    }
+
+    suspend fun _getResultFromDataSource(type : REQParamsType, query : String){
         withContext(Dispatchers.IO){
             netHelper.getAcronymResult(type, query).collect{res ->
                 result.emit(res)
             }
+
+
         }
-        return result
     }
 
 
