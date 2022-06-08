@@ -165,7 +165,11 @@ class MainActivity : ComponentActivity() {
                         textAlign = TextAlign.Center)
                 }
                 is MainActivityUiState.HasResult -> {
-
+                    Text(text = (state as MainActivityUiState.HasResult).results.toString(),
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .fillMaxWidth(1f),
+                        textAlign = TextAlign.Center)
                 }
                 is MainActivityUiState.isLoading -> {
                     CircularProgressIndicator(progress = 0.70f)

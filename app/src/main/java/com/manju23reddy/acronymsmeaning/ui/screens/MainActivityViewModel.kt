@@ -80,7 +80,7 @@ class MainActivityViewModel @Inject constructor(
 
     private suspend fun _getResult(){
         withContext(Dispatchers.IO){
-            repo.getSearchResultFor(searchResult.value.searchType, searchResult.value.queryString).collectLatest { result ->
+            repo.getSearchResultFor(searchResult.value.searchType, searchResult.value.queryString).collect { result ->
                 when(result){
                     is Result.Success -> {
                         searchResult.update {
