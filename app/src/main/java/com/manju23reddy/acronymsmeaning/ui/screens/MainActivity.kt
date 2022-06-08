@@ -7,6 +7,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -165,11 +166,77 @@ class MainActivity : ComponentActivity() {
                         textAlign = TextAlign.Center)
                 }
                 is MainActivityUiState.HasResult -> {
-                    Text(text = (state as MainActivityUiState.HasResult).results.toString(),
-                        modifier = Modifier
-                            .padding(20.dp)
-                            .fillMaxWidth(1f),
-                        textAlign = TextAlign.Center)
+                    val response = (state as MainActivityUiState.HasResult).results
+                    LazyColumn{
+                        response?.let {items->
+                            item {
+                                Text(text = items[0].sf!!,
+                                    modifier = Modifier
+                                        .padding(20.dp)
+                                        .fillMaxWidth(1f),
+                                    textAlign = TextAlign.Center)
+                            }
+
+
+
+                            val inner = items[1].lfs
+                            inner.let {innerItem ->
+                                innerItem.forEach {cur->
+                                    item {
+                                        cur.lf?.let { it1 ->
+
+                                            Column(modifier = Modifier.wrapContentSize()) {
+                                                Text(text = it1,
+                                                    modifier = Modifier
+                                                        .padding(20.dp)
+                                                        .fillMaxWidth(1f),
+                                                    textAlign = TextAlign.Center)
+
+
+                                            }
+
+                                        }
+
+                                    }
+
+                                    cur.vars.let {vars->
+                                      vars.forEach {varsItem->
+                                          item {
+                                              Column(modifier = Modifier.wrapContentSize()) {
+
+                                                  Text(text = varsItem.lf,
+                                                      modifier = Modifier
+                                                          .padding(20.dp)
+                                                          .fillMaxWidth(1f),
+                                                      textAlign = TextAlign.Center)
+
+                                                  Text(text = varsItem.freq.toString(),
+                                                      modifier = Modifier
+                                                          .padding(20.dp)
+                                                          .fillMaxWidth(1f),
+                                                      textAlign = TextAlign.Center)
+
+                                                  Text(text = varsItem.since.toString(),
+                                                      modifier = Modifier
+                                                          .padding(20.dp)
+                                                          .fillMaxWidth(1f),
+                                                      textAlign = TextAlign.Center)
+                                              }
+
+
+                                          }
+                                      }
+                                    }
+
+                                }
+
+                            }
+                        }
+
+                    }
+
+
+
                 }
                 is MainActivityUiState.isLoading -> {
                     CircularProgressIndicator(progress = 0.70f)
